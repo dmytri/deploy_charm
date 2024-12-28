@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apply
+  labels:
+    app: apply
+spec:
+  template:
+    metadata:
+      labels:
+        app: apply
+    spec:
+      containers:
+      - name: apply
+        image: apply
+      restartPolicy: Never
+  backoffLimit: 0

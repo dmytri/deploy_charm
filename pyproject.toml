@@ -1,0 +1,21 @@
+[project]
+name = "deploy"
+version = "1.0.0"
+dependencies = ["poethepoet", "pytest-bdd", "pyinfra"]
+
+[tool.poe.tasks.dev]
+cmd = "pytest -x --gherkin-terminal-reporter --tb=long -s -v -m dev tests/"
+
+[tool.poe.tasks.ci]
+cmd = "pytest -x --tb=long -s -v -m ci tests/"
+
+[tool.pytest.ini_options]
+markers = [
+  "dev",
+  "ci",
+  "prod"
+]
+
+filterwarnings = [
+  "ignore::DeprecationWarning"
+]

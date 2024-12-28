@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: target
+  labels:
+    app: target
+spec:
+  containers:
+    - name: target
+      image: target
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-service
+spec:
+  clusterIP: None
+  ports:
+  - port: 2222
+    targetPort: 2222
+  selector:
+    app: target
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: soft-serve-ssh
+spec:
+  clusterIP: None
+  ports:
+  - port: 23231
+    targetPort: 23231
+  selector:
+    app: target
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: soft-serve-http
+spec:
+  clusterIP: None
+  ports:
+  - port: 23232
+    targetPort: 23232
+  selector:
+    app: target
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: soft-serve-stats
+spec:
+  clusterIP: None
+  ports:
+  - port: 23232
+    targetPort: 23233
+  selector:
+    app: target
