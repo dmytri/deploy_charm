@@ -39,7 +39,3 @@ Tilt will handle port forwarding and other necessary configurations. You can acc
 ssh localhost -p 23231
 
 ```
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
