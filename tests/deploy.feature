@@ -1,4 +1,4 @@
-Feature: Charmebracelet Soft Serv Git Host
+Feature: Charmebracelet Soft Serve Git Host
 
   @dev
   Scenario: dev
