@@ -8,9 +8,11 @@ from pyinfra.api.state import State
 from pyinfra.api.config import Config
 from pyinfra.facts.server import LinuxDistribution, LinuxDistributionDict, Arch
 from pyinfra.facts.apk import ApkPackages
-from pyinfra.operations import files, server
+from pyinfra.operations import files, server, openrc
 
 from typing import Literal
+from io import StringIO
+from textwrap import dedent
 
 scenarios("./deploy.feature")
 
@@ -88,7 +90,7 @@ def _(host: Host):
     distro: LinuxDistributionDict = host.get_fact(LinuxDistribution)
     assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
 
-@when("Soft Serve is installed")
+@when("host should run Soft Serve")
 def _(state: State, host):
     version: str = "0.8.1"
     packages: dict = host.get_fact(ApkPackages)
@@ -113,15 +115,42 @@ def _(state: State, host):
             commands=f"apk add --allow-untrusted /root/{pkg}"
         )
 
-        run_ops(state)
+    service: StringIO = StringIO(dedent(
+        """
+        #!/sbin/openrc-run
 
-@when("Soft Serve is running")
-def _(state: State):
-    add_op(state,
-        server.shell,
-        commands=["nohup soft serve"]
+        name="Soft Serve"
+        description="Soft Serve Git Server 🍦"
+        command="/usr/bin/soft"
+        command_args="serve"
+        pidfile="/run/{RC_SVCNAME}.pid"
+        start_stop_daemon_args="--background"
+
+        depend() {
+            need net
+        }
+        """).strip()
+    )
+
+    add_op(
+        state,
+        files.put,
+        src=service,
+        dest="/etc/init.d/soft-serve"
+    )
+
+    add_op(
+        state,
+        files.file,
+        path="/etc/init.d/soft-serve",
+        mode=755
+    )
+
+    add_op(
+        state,
+        openrc.service,
+        "soft-serve",
+        enabled=True
     )
 
     run_ops(state)
-
-
