@@ -1,6 +1,9 @@
 FROM alpine:3.21
 
-RUN apk add --no-cache openssh
+RUN apk add --no-cache openssh openrc
+
+RUN mkdir /etc/openrc
+RUN touch /etc/openrc/softlevel
 
 RUN mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
@@ -13,9 +16,10 @@ RUN mkdir -p /root/.ssh && \
 
 RUN echo "root:xxxxxxxx" | chpasswd
 
+RUN rc-update add sshd
+
 EXPOSE 2222
 
 WORKDIR /root
 
-CMD ["/usr/sbin/sshd", "-D"]
-
+CMD ["/sbin/init", "noautdetect"]

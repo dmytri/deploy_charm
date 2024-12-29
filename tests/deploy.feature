@@ -18,4 +18,3 @@ Feature: Charmebracelet Soft Serv Git Host
      And host is available
      When Soft Serve is installed
      Then OS is Alpine Linux 3.21 
-
