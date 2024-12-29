@@ -1,10 +1,10 @@
 load('ext://namespace', 'namespace_create')
 load('ext://k8s_attach', 'k8s_attach')
 
-if k8s_namespace() != "telnik":
-    fail("Must run in 'telnik' namespace")
+if k8s_namespace() != "charm":
+    fail("Must run in 'charm' namespace")
 
-namespace_create('telnik')
+namespace_create('charm')
 
 docker_build('target', 'target/')
 k8s_yaml('target/manifest.yaml')
