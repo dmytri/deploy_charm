@@ -1,22 +1,21 @@
 FROM alpine:3.21
 
-# Install Dropbear
-RUN apk add --no-cache dropbear
+RUN apk add --no-cache openssh
 
-# Set up Dropbear configuration and authorized keys
-RUN mkdir -p /etc/dropbear /root/.ssh && \
+RUN mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
-    chmod 600 /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys && \
+    ssh-keygen -A && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "Port 2222" >> /etc/ssh/sshd_config
 
-# Set root password
 RUN echo "root:xxxxxxxx" | chpasswd
 
-# Expose SSH port
-EXPOSE 22
+EXPOSE 2222
 
 WORKDIR /root
 
-# Command to start Dropbear
-CMD ["/usr/sbin/dropbear", "-R", "-F", "-E", "-j", "-k", "-p", "2222"]
+CMD ["/usr/sbin/sshd", "-D"]
 

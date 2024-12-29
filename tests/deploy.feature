@@ -13,13 +13,6 @@ Feature: Charmebracelet Soft Serv Git Host
     Given prod environment
 
   @dev @ci @prod
-  Scenario: Set up target host
-    Given a target host
-     And host is available
-     When OpenRC is available
-     Then OS is Alpine Linux 3.21 
-
-  @dev @ci @prod
   Scenario: Install Soft Serve
     Given a target host
      And host is available

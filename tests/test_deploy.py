@@ -6,10 +6,9 @@ from pyinfra.api.operations import run_ops
 from pyinfra.api.connect import connect_all
 from pyinfra.api.state import State
 from pyinfra.api.config import Config
-from pyinfra.facts.server import LinuxDistribution, LinuxDistributionDict
-from pyinfra.facts.server import Arch
+from pyinfra.facts.server import LinuxDistribution, LinuxDistributionDict, Arch
 from pyinfra.facts.apk import ApkPackages
-from pyinfra.operations import apk, files, server
+from pyinfra.operations import files, server
 
 from typing import Literal
 
@@ -84,20 +83,6 @@ def _(state) -> Host:
     assert host is not None
     return host
 
-@when("OpenRC is available")
-def _(state: State, host: Host):
-    add_op(state,
-        apk.packages,
-        name="Install OpenRC",
-        packages=["openrc"],
-        present=True
-    )
-
-    run_ops(state)
-
-    packages: dict = host.get_fact(ApkPackages)
-    assert "openrc" in packages
-
 @then("OS is Alpine Linux 3.21")
 def _(host: Host):
     distro: LinuxDistributionDict = host.get_fact(LinuxDistribution)
@@ -129,3 +114,14 @@ def _(state: State, host):
         )
 
         run_ops(state)
+
+@when("Soft Serve is running")
+def _(state: State):
+    add_op(state,
+        server.shell,
+        commands=["nohup soft serve"]
+    )
+
+    run_ops(state)
+
+
