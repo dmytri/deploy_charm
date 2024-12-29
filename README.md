@@ -1,6 +1,6 @@
-# Deploy Charm
+# Deploy Charmbracelet Soft Serve
 
-This repository contains the deployment configurations and tests for the Charmebracelet Soft Serve
+Deploy Soft Serve with Behaviour Driven Automation (BDA)
 
 ## Setting Up the Environment
 
