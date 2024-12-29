@@ -29,27 +29,10 @@ def host(state: State) -> Host:
     assert host is not None
     return host
 
-@given("dev environment")
-def _():
+@fixture
+def state() -> State:
     global TARGET
-    assert TARGET is None
-    TARGET = "dev"
-
-@given("ci environment")
-def _():
-    global TARGET
-    assert TARGET is None
-    TARGET = "ci"
-
-@given("prod environment")
-def _():
-    global TARGET
-    assert TARGET is None
-    TARGET = "prod"
-
-@given("a target host", target_fixture="state")
-def _() -> State:
-    global TARGET
+    assert TARGET is not None
     match TARGET:
         case "dev":
             inventory: Inventory = Inventory((
@@ -87,12 +70,30 @@ def _() -> State:
 
     return state
 
+@when("target is dev")
+def _():
+    global TARGET
+    assert TARGET is None
+    TARGET = "dev"
+
+@when("target is ci")
+def _():
+    global TARGET
+    assert TARGET is None
+    TARGET = "ci"
+
+@when("target is prod")
+def _():
+    global TARGET
+    assert TARGET is None
+    TARGET = "prod"
+
 @then("OS is Alpine Linux 3.21")
 def _(host: Host):
     distro: LinuxDistributionDict = host.get_fact(LinuxDistribution)
     assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
 
-@when("host should run Soft Serve")
+@when("host must run Soft Serve")
 def _(state: State, host: Host):
     version: str = "0.8.1"
     packages: dict = host.get_fact(ApkPackages)
@@ -160,7 +161,7 @@ def _(state: State, host: Host):
 
     run_ops(state)
 
-@then("Soft Serve should be available")
+@then("Soft Serve is available")
 def _(host: Host):
     enabled: dict = host.get_fact(OpenrcEnabled, "default")
     assert enabled['soft-serve'] is True
