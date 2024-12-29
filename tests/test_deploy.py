@@ -1,3 +1,4 @@
+from pytest import fixture
 from pytest_bdd import scenarios, given, when, then
 from pyinfra.api.host import Host
 from pyinfra.api.inventory import Inventory
@@ -19,6 +20,14 @@ scenarios("./deploy.feature")
 
 Targets = Literal["ci", "dev", "prod"] 
 TARGET: Targets | None = None
+
+@fixture
+def host(state: State) -> Host:
+    assert state.inventory.hosts
+    host: Host = list(state.inventory.hosts.values())[0]
+
+    assert host is not None
+    return host
 
 @given("dev environment")
 def _():
@@ -77,14 +86,6 @@ def _() -> State:
     connect_all(state)
 
     return state
-
-@given("host is available", target_fixture="host")
-def _(state) -> Host:
-    assert state.inventory.hosts
-    host: Host = list(state.inventory.hosts.values())[0]
-
-    assert host is not None
-    return host
 
 @then("OS is Alpine Linux 3.21")
 def _(host: Host):

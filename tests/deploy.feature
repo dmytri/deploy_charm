@@ -15,12 +15,10 @@ Feature: Charmebracelet Soft Serv Git Host
   @dev @ci @prod
   Scenario: Verify expected host OS
     Given a target host
-     And host is available
      Then OS is Alpine Linux 3.21 
 
   @dev @ci @prod
   Scenario: Require Soft Serve
     Given a target host
-     And host is available
     When host should run Soft Serve
     Then Soft Serve should be available
