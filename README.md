@@ -14,7 +14,7 @@ To set up a local Kubernetes environment, we recommend using Minikube along with
 
 ### Starting Minikube
 
-1. Start Minikube with the desired Kubernetes version:
+1. Start Minikube
     ```bash
     minikube start
     ```
