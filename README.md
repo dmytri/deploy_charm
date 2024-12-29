@@ -19,11 +19,6 @@ To set up a local Kubernetes environment, we recommend using Minikube along with
     minikube start
     ```
 
-2. Verify Minikube is running:
-    ```bash
-    minikube status
-    ```
-
 ### Using Tilt
 
 1. Navigate to the root directory of your repository.
