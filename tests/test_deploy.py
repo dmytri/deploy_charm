@@ -8,6 +8,7 @@ from pyinfra.api.state import State
 from pyinfra.api.config import Config
 from pyinfra.facts.server import LinuxDistribution, LinuxDistributionDict, Arch
 from pyinfra.facts.apk import ApkPackages
+from pyinfra.facts.openrc import OpenrcStatus, OpenrcEnabled
 from pyinfra.operations import files, server, openrc
 
 from typing import Literal
@@ -91,7 +92,7 @@ def _(host: Host):
     assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
 
 @when("host should run Soft Serve")
-def _(state: State, host):
+def _(state: State, host: Host):
     version: str = "0.8.1"
     packages: dict = host.get_fact(ApkPackages)
 
@@ -115,42 +116,50 @@ def _(state: State, host):
             commands=f"apk add --allow-untrusted /root/{pkg}"
         )
 
-    service: StringIO = StringIO(dedent(
-        """
-        #!/sbin/openrc-run
+    status: dict = host.get_fact(OpenrcStatus, "default")
 
-        name="Soft Serve"
-        description="Soft Serve Git Server 🍦"
-        command="/usr/bin/soft"
-        command_args="serve"
-        pidfile="/run/{RC_SVCNAME}.pid"
-        start_stop_daemon_args="--background"
+    if "soft-serve" not in status:
+        service: StringIO = StringIO(dedent(
+            """
+            #!/sbin/openrc-run
 
-        depend() {
-            need net
-        }
-        """).strip()
-    )
+            name="Soft Serve"
+            description="Soft Serve Git Server 🍦"
+            command="/usr/bin/soft"
+            command_args="serve"
+            pidfile="/run/{RC_SVCNAME}.pid"
+            start_stop_daemon_args="--background"
 
-    add_op(
-        state,
-        files.put,
-        src=service,
-        dest="/etc/init.d/soft-serve"
-    )
+            depend() {
+                need net
+            }
+            """).strip()
+        )
 
-    add_op(
-        state,
-        files.file,
-        path="/etc/init.d/soft-serve",
-        mode=755
-    )
+        add_op(
+            state,
+            files.put,
+            src=service,
+            dest="/etc/init.d/soft-serve"
+        )
 
-    add_op(
-        state,
-        openrc.service,
-        "soft-serve",
-        enabled=True
-    )
+        add_op(
+            state,
+            files.file,
+            path="/etc/init.d/soft-serve",
+            mode=755
+        )
+
+        add_op(
+            state,
+            openrc.service,
+            "soft-serve",
+            enabled=True
+        )
 
     run_ops(state)
+
+@then("Soft Serve should be available")
+def _(host: Host):
+    enabled: dict = host.get_fact(OpenrcEnabled, "default")
+    assert enabled['soft-serve'] is True

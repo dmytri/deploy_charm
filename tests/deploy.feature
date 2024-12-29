@@ -23,4 +23,4 @@ Feature: Charmebracelet Soft Serv Git Host
     Given a target host
      And host is available
     When host should run Soft Serve
-    # Then Soft Serve should be available
+    Then Soft Serve should be available
