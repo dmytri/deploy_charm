@@ -12,7 +12,7 @@ from pyinfra.facts.apk import ApkPackages
 from pyinfra.facts.openrc import OpenrcStatus, OpenrcEnabled
 from pyinfra.operations import files, server, apk, openrc
 
-from typing import Literal
+from typing import Literal, TypedDict
 from io import StringIO
 from textwrap import dedent
 
@@ -70,6 +70,22 @@ def state() -> State:
 
     return state
 
+SOFT_SERVE_VERSION: str | None = None
+
+class SoftServe(TypedDict):
+    version: str
+    pkg: str
+
+@fixture
+def soft_serve(host: Host) -> SoftServe:
+    global SOFT_SERVE_VERSION
+    assert SOFT_SERVE_VERSION is not None
+    version: str = SOFT_SERVE_VERSION
+    arch: str = host.get_fact(Arch)
+    assert arch in ["aarch64", "armv7", "x86", "x86_64"] 
+    pkg: str = f"soft-serve_{version}_{arch}.apk"
+    return {'version': version, "pkg": pkg}
+
 scenario("deploy.feature", "dev")
 
 @when("target is dev")
@@ -95,7 +111,7 @@ def _():
     assert TARGET is None
     TARGET = "prod"
 
-scenario("deploy.feature", "Verify expected host OS")
+scenario("deploy.feature", "Expected host OS")
 
 @given("apk packages must be latest")
 def _(state):
@@ -105,14 +121,6 @@ def _(state):
     add_op(state,
        apk.upgrade
     )
-    run_ops(state)
-
-@then("OS is Alpine Linux 3.21")
-def _(host: Host):
-    distro: LinuxDistributionDict = host.get_fact(LinuxDistribution)
-    assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
-
-scenario("deploy.feature", "Verify Soft Serve 0.8.1 Checksums")
 
 @when("cosign is required")
 def _(state: State):
@@ -121,9 +129,35 @@ def _(state: State):
        packages = ["cosign"]
     )
 
+    run_ops(state)
+
+@then("OS is Alpine Linux 3.21")
+def _(host: Host):
+    distro: LinuxDistributionDict = host.get_fact(LinuxDistribution)
+    assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
+
+scenario("deploy.feature", "Require Soft Serve")
+
+@given("Soft Serve v0.8.1")
+def _():
+    global SOFT_SERVE_VERSION
+    SOFT_SERVE_VERSION = "0.8.1"
+
+@when("I have a Soft Serve package")
+def _(state: State, soft_serve: SoftServe):
+    version: str = soft_serve["version"]
+    pkg: str = soft_serve["pkg"]
+
+    add_op(state,
+        files.download,
+        name="Download Soft Serve Binary",
+        src=f"https://github.com/charmbracelet/soft-serve/releases/download/v{version}/{pkg}",
+        dest=f"/root/{pkg}"
+    )
+
 @when("Soft Serve checksums file is required")
-def _(state: State):
-    version: str = "0.8.1"
+def _(state: State, soft_serve: SoftServe):
+    version: str = soft_serve["version"]
     add_op(state,
         files.download,
         name="Download Soft Serve Checksums",
@@ -131,32 +165,55 @@ def _(state: State):
         dest="/root/checksums.txt"
     )
 
-    run_ops(state)
+@when("file must be verified with cosign")
+def _(state: State, soft_serve: SoftServe):
+    version: str = soft_serve["version"]
+    verify: str = dedent(
+        f"""
+        cosign verify-blob \
+          --certificate-identity 'https://github.com/charmbracelet/meta/.github/workflows/goreleaser.yml@refs/heads/main' \
+          --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+          --cert 'https://github.com/charmbracelet/soft-serve/releases/download/v{version}/checksums.txt.pem' \
+          --signature 'https://github.com/charmbracelet/soft-serve/releases/download/v{version}/checksums.txt.sig' \
+          ./checksums.txt
+        """).strip()
 
-scenario("deploy.feature", "Require Soft Serve")
+    add_op(
+        state,
+        server.shell,
+        name="verify checksums",
+        commands=verify
+    )
+
+@when("the checksum matches")
+def _(state, soft_serve):
+    pkg: str = soft_serve["pkg"]
+    match = dedent(
+        f"""
+       grep {pkg} checksums.txt > {pkg}.checksum
+       sha256sum -c {pkg}.checksum
+        """).strip()
+
+    add_op(
+        state,
+        server.shell,
+        name="verify checksum",
+        commands=match
+    )
 
 @when("Soft Serve is required")
-def _(state: State, host: Host):
-    version: str = "0.8.1"
+def _(state: State, host: Host, soft_serve: SoftServe):
+    version: str = soft_serve["version"]
     packages: dict = host.get_fact(ApkPackages)
 
     if "soft-serve" not in packages or packages["soft-serve"] != {version}:
-        arch: str = host.get_fact(Arch)
-        assert arch in ["aarch64", "armv7", "x86", "x86_64"] 
 
-        pkg: str = f"soft-serve_{version}_{arch}.apk"
-
-        add_op(state,
-            files.download,
-            name="Download Soft Serve Binary",
-            src=f"https://github.com/charmbracelet/soft-serve/releases/download/v{version}/{pkg}",
-            dest=f"/root/{pkg}"
-        )
+        pkg: str = soft_serve["pkg"]
 
         add_op(
             state,
             server.shell,
-            name="Install local APK with --allow-upgrades",
+            name="Install local APK",
             commands=f"apk add --allow-untrusted /root/{pkg}"
         )
 
