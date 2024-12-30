@@ -25,5 +25,5 @@ Feature: Charmebracelet Soft Serve Git Host
       And Soft Serve checksums file is required
       And file must be verified with cosign
       And the checksum matches
-    When Soft Serve is required
-    Then Soft Serve is available
+     When Soft Serve is required
+     Then Soft Serve is available
