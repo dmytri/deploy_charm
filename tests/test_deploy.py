@@ -1,22 +1,23 @@
-from pytest import fixture
-from pytest_bdd import scenarios, scenario, given, when, then
+from io import StringIO
+from textwrap import dedent
+from typing import Literal, TypedDict
+
+from pyinfra.api.config import Config
+from pyinfra.api.connect import connect_all
 from pyinfra.api.host import Host
 from pyinfra.api.inventory import Inventory
 from pyinfra.api.operation import add_op
 from pyinfra.api.operations import run_ops
-from pyinfra.api.connect import connect_all
 from pyinfra.api.state import State
-from pyinfra.api.config import Config
-from pyinfra.facts.server import LinuxDistribution, LinuxDistributionDict, Arch
 from pyinfra.facts.apk import ApkPackages
-from pyinfra.facts.openrc import OpenrcStatus, OpenrcEnabled
-from pyinfra.operations import files, server, apk, openrc
+from pyinfra.facts.openrc import OpenrcEnabled, OpenrcStatus
+from pyinfra.facts.server import Arch, LinuxDistribution, LinuxDistributionDict
+from pyinfra.operations import apk, files, openrc, server
+from pytest import fixture, skip
+from pytest_bdd import given, scenario, scenarios, then, when
 
-from typing import Literal, TypedDict
-from io import StringIO
-from textwrap import dedent
-
-scenarios("deploy.feature")
+## GLOBALS AND FIXTURES ~
+#
 
 Targets = Literal["ci", "dev", "prod"] 
 TARGET: Targets | None = None
@@ -86,6 +87,22 @@ def soft_serve(host: Host) -> SoftServe:
     pkg: str = f"soft-serve_{version}_{arch}.apk"
     return {'version': version, "pkg": pkg}
 
+DEPLOYED: bool = False
+
+@fixture
+def deployed() -> bool:
+    assert (isinstance(DEPLOYED, bool))
+    return DEPLOYED
+
+## SCENARIOS ~
+#
+
+scenarios("deploy.feature")
+
+
+## PREFLIGHT SCENARIOS
+#
+
 scenario("deploy.feature", "dev")
 
 @when("target is dev")
@@ -111,10 +128,34 @@ def _():
     assert TARGET is None
     TARGET = "prod"
 
+scenario("deploy.feature", "Soft Serve Deployment is needed")
+
+@given("Soft Serve v0.8.1")
+def _():
+    global SOFT_SERVE_VERSION
+    SOFT_SERVE_VERSION = "0.8.1"
+
+@then("deploy Soft Serve")
+def _(host: Host, soft_serve: SoftServe):
+    global DEPLOYED
+    version: str = soft_serve["version"]
+    packages: dict = host.get_fact(ApkPackages)
+    if "soft-serve" in packages and packages["soft-serve"] == {version}:
+        DEPLOYED = True
+        skip()
+
+    print("DEPLOYED", DEPLOYED)
+
+## DEPLOY SCENARIOS ~
+#
+
 scenario("deploy.feature", "Expected host OS")
 
 @given("apk packages must be latest")
-def _(state):
+def _(state: State, deployed: bool):
+    if deployed:
+        skip()
+
     add_op(state,
        apk.update
     )
@@ -137,11 +178,6 @@ def _(host: Host):
     assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
 
 scenario("deploy.feature", "Require Soft Serve")
-
-@given("Soft Serve v0.8.1")
-def _():
-    global SOFT_SERVE_VERSION
-    SOFT_SERVE_VERSION = "0.8.1"
 
 @when("I have a Soft Serve package")
 def _(state: State, soft_serve: SoftServe):
@@ -166,7 +202,11 @@ def _(state: State, soft_serve: SoftServe):
     )
 
 @when("file must be verified with cosign")
-def _(state: State, soft_serve: SoftServe):
+def _(state: State, soft_serve: SoftServe, deployed: bool):
+
+    if deployed:
+        skip()
+
     version: str = soft_serve["version"]
     verify: str = dedent(
         f"""
@@ -203,19 +243,15 @@ def _(state, soft_serve):
 
 @when("Soft Serve is required")
 def _(state: State, host: Host, soft_serve: SoftServe):
-    version: str = soft_serve["version"]
-    packages: dict = host.get_fact(ApkPackages)
 
-    if "soft-serve" not in packages or packages["soft-serve"] != {version}:
+    pkg: str = soft_serve["pkg"]
 
-        pkg: str = soft_serve["pkg"]
-
-        add_op(
-            state,
-            server.shell,
-            name="Install local APK",
-            commands=f"apk add --allow-untrusted /root/{pkg}"
-        )
+    add_op(
+        state,
+        server.shell,
+        name="Install local APK",
+        commands=f"apk add --allow-untrusted /root/{pkg}"
+    )
 
     status: dict = host.get_fact(OpenrcStatus, "default")
 
