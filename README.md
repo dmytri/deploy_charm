@@ -2,6 +2,28 @@
 
 Deploy Soft Serve with Behaviour Driven Automation (BDA)
 
+## Behavior-Driven Automation (BDA)
+
+Behavior-Driven Automation (BDA) is an approach that extends the principles of Behavior-Driven Development (BDD) to automate processes and workflows. BDA focuses on automating the behavior of systems in a way that is understandable to both technical and non-technical stakeholders. This ensures that the automated processes align with the desired business outcomes and behaviors.
+
+In this project, the `tests/deploy.feature` file and the `tests/test_deploy.py` file work together to describe and automate the deployment process for the Charmebracelet Soft Serve Git Host. Here's how they demonstrate Behavior-Driven Automation:
+
+1. **Feature File (`tests/deploy.feature`)**:
+   - The feature file is written in Gherkin syntax, which describes the behavior of the system in a natural language format.
+   - It contains multiple scenarios that outline different aspects of the deployment process, such as deploying to different environments (dev, ci, prod), ensuring the correct version of Soft Serve is deployed, and verifying the host OS.
+
+2. **Test File (`tests/test_deploy.py`)**:
+   - The test file uses the `pytest-bdd` library to link the scenarios described in the feature file to the actual automation code.
+   - It defines fixtures and functions that implement the steps described in the feature file, such as setting the target environment, downloading and verifying packages, and ensuring the correct services are running.
+
+Here's a breakdown of how the test file implements Behavior-Driven Automation:
+
+- **Fixtures**: The test file defines several fixtures to set up the necessary state and context for the tests. For example, the `state` fixture sets up the inventory and configuration for the target environment, and the `soft_serve` fixture prepares the Soft Serve package information.
+
+- **Scenarios and Steps**: The test file uses the `scenario` decorator to link each scenario in the feature file to the corresponding functions that implement the steps. For example, the `@when("target is dev")` function sets the target environment to "dev", and the `@then("deploy Soft Serve")` function handles the deployment of the Soft Serve package.
+
+- **Operations**: The test file uses the `pyinfra` library to perform various operations, such as downloading files, verifying checksums, and managing services. These operations
+
 ## Setting Up the Environment
 
 To set up a local Kubernetes environment, we recommend using Minikube along with Tilt for managing the development environment.
