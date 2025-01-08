@@ -14,7 +14,7 @@ Feature: Charmebracelet Soft Serve Git Host
 
   @dev @ci @prod
   Scenario: Soft Serve Deployment is needed
-    Given Soft Serve v0.8.1
+    Given Soft Serve v0.8.2
      Then deploy Soft Serve
 
   @dev @ci @prod

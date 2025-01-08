@@ -44,7 +44,7 @@ def state() -> State:
                     "ssh_password": "xxxxxxxx",
                     "ssh_strict_host_key_checking": "off",
                     "ssh_known_hosts_file": "/dev/null",
-                },
+                }
             ))
         case "ci":
             inventory: Inventory = Inventory((
@@ -55,8 +55,20 @@ def state() -> State:
                     "ssh_password": "xxxxxxxx",
                     "ssh_strict_host_key_checking": "off",
                     "ssh_known_hosts_file": "/dev/null",
-                },
+                }
             ))
+        case "prod":
+            inventory: Inventory = Inventory((
+                ["teknik.net"],
+                {
+                    "ssh_user": "dk",
+                    "ssh_port": 22,
+                    "ssh_password": "xxxxxxxx",
+                    "ssh_strict_host_key_checking": "off",
+                    "ssh_known_hosts_file": "/dev/null",
+                }
+            ))
+
         case _:
             raise Exception("invalid target environment")
 
@@ -130,10 +142,10 @@ def _():
 
 scenario("deploy.feature", "Soft Serve Deployment is needed")
 
-@given("Soft Serve v0.8.1")
+@given("Soft Serve v0.8.2")
 def _():
     global SOFT_SERVE_VERSION
-    SOFT_SERVE_VERSION = "0.8.1"
+    SOFT_SERVE_VERSION = "0.8.2"
 
 @then("deploy Soft Serve")
 def _(host: Host, soft_serve: SoftServe):
