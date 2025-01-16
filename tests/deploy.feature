@@ -3,32 +3,32 @@ Feature: Charmebracelet Soft Serve Git Host
 
   @dev
   Scenario: dev
-     When target is dev
+     When target dev
 
   @ci
   Scenario: ci
-     When target is ci
+     When target ci
 
   @prod
   Scenario: prod
-     When target is prod
+     When target prod
 
   @dev @ci @prod
-  Scenario: Soft Serve Deployment is needed
+  Scenario: Soft Serve deployment needed
     Given Soft Serve v0.8.2
-     Then deploy Soft Serve
+     Then Soft Serve deployed
 
   @dev @ci @prod
   Scenario: Expected host OS
-    Given the system packages are up to date
-     When cosign is available for verification
-     Then OS is Alpine Linux 3.21 
+    Given system packages up to date
+     When cosign available
+     Then OS Alpine Linux 3.21 
 
   @dev @ci @prod
   Scenario: Require Soft Serve
-    When the Soft Serve package is downloaded
-     And Soft Serve checksums file is required
-     And the checksums file signature is verified
-     And the package integrity is verified
-    When Soft Serve is installed and configured
-    Then Soft Serve is running and accessible
+     When Soft Serve package downloaded
+      And Soft Serve checksums file downloaded 
+      And checksums file signature verified
+      And package integrity verified
+     When Soft Serve installed and configured
+     Then Soft Serve running and accessible

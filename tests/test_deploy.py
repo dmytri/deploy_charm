@@ -117,7 +117,7 @@ scenarios("deploy.feature")
 
 scenario("deploy.feature", "dev")
 
-@when("target is dev")
+@when("target dev")
 def _():
     global TARGET
     assert TARGET is None
@@ -125,7 +125,7 @@ def _():
 
 scenario("deploy.feature", "ci")
 
-@when("target is ci")
+@when("target ci")
 def _():
     global TARGET
     assert TARGET is None
@@ -134,20 +134,20 @@ def _():
 
 scenario("deploy.feature", "prod")
 
-@when("target is prod")
+@when("target prod")
 def _():
     global TARGET
     assert TARGET is None
     TARGET = "prod"
 
-scenario("deploy.feature", "Soft Serve Deployment is needed")
+scenario("deploy.feature", "Soft Serve Deployment needed")
 
 @given("Soft Serve v0.8.2")
 def _():
     global SOFT_SERVE_VERSION
     SOFT_SERVE_VERSION = "0.8.2"
 
-@then("deploy Soft Serve")
+@then("Soft Serve deployed")
 def _(host: Host, soft_serve: SoftServe):
     global DEPLOYED
     version: str = soft_serve["version"]
@@ -161,7 +161,7 @@ def _(host: Host, soft_serve: SoftServe):
 
 scenario("deploy.feature", "Expected host OS")
 
-@given("the system packages are up to date")
+@given("system packages up to date")
 def _(state: State, deployed: bool):
     if deployed:
         skip()
@@ -173,7 +173,7 @@ def _(state: State, deployed: bool):
        apk.upgrade
     )
 
-@when("cosign is available for verification")
+@when("cosign available")
 def _(state: State):
     add_op(state,
        apk.packages,
@@ -182,14 +182,14 @@ def _(state: State):
 
     run_ops(state)
 
-@then("OS is Alpine Linux 3.21")
+@then("OS Alpine Linux 3.21")
 def _(host: Host):
     distro: LinuxDistributionDict = host.get_fact(LinuxDistribution)
     assert distro["release_meta"]["PRETTY_NAME"] == "Alpine Linux v3.21"
 
 scenario("deploy.feature", "Require Soft Serve")
 
-@when("the Soft Serve package is downloaded")
+@when("Soft Serve package downloaded")
 def _(state: State, soft_serve: SoftServe):
     version: str = soft_serve["version"]
     pkg: str = soft_serve["pkg"]
@@ -201,7 +201,7 @@ def _(state: State, soft_serve: SoftServe):
         dest=f"/root/{pkg}"
     )
 
-@when("Soft Serve checksums file is required")
+@when("Soft Serve checksums file downloaded")
 def _(state: State, soft_serve: SoftServe):
     version: str = soft_serve["version"]
     add_op(state,
@@ -211,7 +211,7 @@ def _(state: State, soft_serve: SoftServe):
         dest="/root/checksums.txt"
     )
 
-@when("the checksums file signature is verified")
+@when("checksums file signature verified")
 def _(state: State, soft_serve: SoftServe, deployed: bool):
 
     if deployed:
@@ -235,7 +235,7 @@ def _(state: State, soft_serve: SoftServe, deployed: bool):
         commands=verify
     )
 
-@when("the package integrity is verified")
+@when("package integrity verified")
 def _(state, soft_serve):
     pkg: str = soft_serve["pkg"]
     match = dedent(
@@ -251,7 +251,7 @@ def _(state, soft_serve):
         commands=match
     )
 
-@when("Soft Serve is installed and configured")
+@when("Soft Serve installed and configured")
 def _(state: State, host: Host, soft_serve: SoftServe):
 
     pkg: str = soft_serve["pkg"]
@@ -306,7 +306,7 @@ def _(state: State, host: Host, soft_serve: SoftServe):
 
     run_ops(state)
 
-@then("Soft Serve is running and accessible")
+@then("Soft Serve running and accessible")
 def _(host: Host):
     enabled: dict = host.get_fact(OpenrcEnabled, "default")
     assert enabled['soft-serve'] is True
