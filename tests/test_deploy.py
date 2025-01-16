@@ -156,8 +156,6 @@ def _(host: Host, soft_serve: SoftServe):
         DEPLOYED = True
         skip()
 
-    print("DEPLOYED", DEPLOYED)
-
 ## DEPLOY SCENARIOS ~
 #
 

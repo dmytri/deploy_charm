@@ -21,14 +21,14 @@ Feature: Charmebracelet Soft Serve Git Host
   @dev @ci @prod
   Scenario: Expected host OS
     Given the system packages are up to date
-    When cosign is available for verification
-    Then OS is Alpine Linux 3.21 
+     When cosign is available for verification
+     Then OS is Alpine Linux 3.21 
 
   @dev @ci @prod
   Scenario: Require Soft Serve
     When the Soft Serve package is downloaded
-    And Soft Serve checksums file is required
-    And the checksums file signature is verified
-    And the package integrity is verified
+     And Soft Serve checksums file is required
+     And the checksums file signature is verified
+     And the package integrity is verified
     When Soft Serve is installed and configured
     Then Soft Serve is running and accessible
