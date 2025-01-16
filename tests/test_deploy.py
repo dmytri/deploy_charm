@@ -140,7 +140,7 @@ def _():
     assert TARGET is None
     TARGET = "prod"
 
-scenario("deploy.feature", "Soft Serve Deployment needed")
+scenario("deploy.feature", "Soft Serve deployment needed")
 
 @given("Soft Serve v0.8.2")
 def _():
