@@ -163,7 +163,7 @@ def _(host: Host, soft_serve: SoftServe):
 
 scenario("deploy.feature", "Expected host OS")
 
-@given("apk packages must be latest")
+@given("the system packages are up to date")
 def _(state: State, deployed: bool):
     if deployed:
         skip()
@@ -175,7 +175,7 @@ def _(state: State, deployed: bool):
        apk.upgrade
     )
 
-@when("cosign is required")
+@when("cosign is available for verification")
 def _(state: State):
     add_op(state,
        apk.packages,
@@ -191,7 +191,7 @@ def _(host: Host):
 
 scenario("deploy.feature", "Require Soft Serve")
 
-@when("I have a Soft Serve package")
+@when("the Soft Serve package is downloaded")
 def _(state: State, soft_serve: SoftServe):
     version: str = soft_serve["version"]
     pkg: str = soft_serve["pkg"]
@@ -213,7 +213,7 @@ def _(state: State, soft_serve: SoftServe):
         dest="/root/checksums.txt"
     )
 
-@when("file must be verified with cosign")
+@when("the checksums file signature is verified")
 def _(state: State, soft_serve: SoftServe, deployed: bool):
 
     if deployed:
@@ -237,7 +237,7 @@ def _(state: State, soft_serve: SoftServe, deployed: bool):
         commands=verify
     )
 
-@when("the checksum matches")
+@when("the package integrity is verified")
 def _(state, soft_serve):
     pkg: str = soft_serve["pkg"]
     match = dedent(
@@ -253,7 +253,7 @@ def _(state, soft_serve):
         commands=match
     )
 
-@when("Soft Serve is required")
+@when("Soft Serve is installed and configured")
 def _(state: State, host: Host, soft_serve: SoftServe):
 
     pkg: str = soft_serve["pkg"]
@@ -308,7 +308,7 @@ def _(state: State, host: Host, soft_serve: SoftServe):
 
     run_ops(state)
 
-@then("Soft Serve is available")
+@then("Soft Serve is running and accessible")
 def _(host: Host):
     enabled: dict = host.get_fact(OpenrcEnabled, "default")
     assert enabled['soft-serve'] is True
